@@ -1,0 +1,124 @@
+---
+title: "Analog sticks and axes"
+description: "Configure dead zones, diagonal range, stick modes, mouse acceleration, and axis throttle for precise analog stick behavior in AntiMicroX."
+---
+
+Analog sticks produce continuous axis values rather than simple on/off signals. AntiMicroX exposes several settings to tune how those raw values are interpreted and translated into keyboard, mouse, or other actions.
+
+To access stick settings, click the stick widget in the main window (labeled **LS** or **RS**, or **Left Stick** / **Right Stick**).
+
+## Dead zones
+
+A dead zone is a range of axis values around the center position that AntiMicroX treats as "not moved." Physical analog sticks never return to a perfect center — there is always a small amount of mechanical drift. Without a dead zone, that drift causes unintended input.
+
+### Recommended values
+
+| Controller | Recommended dead zone |
+|---|---|
+| Xbox 360 / XInput-compatible | **8,000** (XInput standard) |
+| Logitech F310 | **2,000** |
+| Other controllers | Experiment — lower values if the stick feels unresponsive; raise if there is cursor drift at rest |
+
+<Tip>
+  The XInput standard dead zone of 8,000 is a safe starting point for most Xbox-style controllers. For twitchy mouse aiming, try decreasing the right stick dead zone to around 6,000 — this makes movement feel more responsive at the cost of possible slight cursor drift when the stick is released.
+</Tip>
+
+<Note>
+  If you lower the dead zone for mouse control, monitor whether the mouse cursor drifts when you release the stick. A small amount of drift is usually acceptable and easy to compensate for during gameplay.
+</Note>
+
+## Diagonal range
+
+The diagonal range controls how many degrees of arc around each diagonal direction are treated as a diagonal input. Directions outside that arc are treated as a pure cardinal direction.
+
+### For keyboard mappings (left stick)
+
+The default of **45 degrees** is recommended when mapping WASD or other keyboard keys to the left stick in **Standard** stick mode. This gives equal arc to both pure cardinal and diagonal directions.
+
+<Tip>
+  If a game overreacts to direction changes — especially when the stick passes through a diagonal zone — enable the **stick delay** setting. Even a value of 0.01 seconds introduces a tiny lag before registering a direction change, which can greatly improve control stability.
+</Tip>
+
+### For mouse control (right stick)
+
+A diagonal range of at least **65 degrees** is recommended for mouse movement. Setting it to **89 or 90 degrees** maximizes the portion of stick travel used for diagonal movement and minimizes the narrow arcs reserved for pure cardinal directions, enabling more responsive and "twitchy" cursor movement.
+
+| Use case | Recommended diagonal range |
+|---|---|
+| Keyboard (WASD movement) | 45° |
+| Mouse (general aim) | 65°–75° |
+| Mouse (twitchy / FPS aim) | 89°–90° |
+
+## Stick modes
+
+<CardGroup cols={2}>
+  <Card title="Standard" icon="circle" href="/guides/analog-sticks">
+    The default mode. All eight directions (four cardinal plus four diagonal) can be active. Diagonal range controls how arc is split between them. Best for movement, camera, and cursor control.
+  </Card>
+  <Card title="8-way" icon="compass" href="/guides/analog-sticks">
+    Similar to Standard but treats all eight directions equally. All eight directions — including all four diagonals — fire independently. Useful for controllers and games that require full diagonal action coverage.
+  </Card>
+  <Card title="4-way cardinal" icon="arrows-up-down-left-right" href="/guides/analog-sticks">
+    Only four directions are recognized (up, down, left, right). No diagonal inputs fire — the stick snaps to the nearest cardinal direction. Ideal for menu navigation or mapping weapon hotkeys where accidental diagonals are undesirable.
+  </Card>
+  <Card title="4-way diagonal" icon="diamond" href="/guides/analog-sticks">
+    Only the four diagonal directions are recognized. Cardinal directions are ignored. Useful for specialized game mechanics where only diagonal input is expected.
+  </Card>
+</CardGroup>
+
+## Stick delay
+
+The stick delay setting adds a brief pause before AntiMicroX registers a direction change. This prevents rapid flickering between directions when the stick passes through a diagonal boundary.
+
+- Set to **0** to disable (default)
+- Even **0.01 seconds** can meaningfully improve control in games sensitive to rapid direction switches
+- Most useful for left stick keyboard mappings; less relevant for mouse control
+
+## Mouse acceleration (right stick)
+
+When the right stick is mapped to mouse movement, AntiMicroX can apply **extra acceleration** to make movement faster when the stick is pushed further. This is configured in the stick's properties dialog.
+
+### Extra duration
+
+The **extra duration** setting has the largest impact on mouse feel. It controls how long the acceleration ramp continues after the stick is pushed. Increasing this value "loosens" the mouse — the cursor accelerates for longer, enabling quick 180° turns while still allowing precision aim at low stick deflections.
+
+### Multiplier
+
+The **multiplier** changes the overall speed scaling applied during the acceleration phase. Raise it to increase the maximum speed reached at full stick deflection.
+
+### Acceleration curves
+
+Four acceleration curve types are available:
+
+| Curve | Behavior |
+|---|---|
+| **Linear** | Speed increases at a constant rate. The historical default — predictable but can feel uniform across the stick's range. |
+| **Ease Out Sine** | Rapid initial acceleration that eases off as you approach maximum deflection. |
+| **Ease Out Quad** | Starts fast and tapers to a smooth plateau. Recommended for most FPS-style mouse control. |
+| **Ease Out Cubic** | Similar to Ease Out Quad but with a steeper initial burst of acceleration. |
+
+<Tip>
+  **Ease Out Quad** is the recommended curve for right-stick mouse movement. Combined with an appropriate extra duration and multiplier, it enables quick 180° turns while keeping precision aim at low stick deflection.
+</Tip>
+
+### Mouse movement modes
+
+| Mode | Behavior |
+|---|---|
+| **Cursor** | Standard cursor movement — the cursor moves proportionally to stick deflection. This is the default. |
+| **Spring** | The cursor snaps back to a defined screen position when the stick is released. Useful for applications where the cursor should always return to a fixed point. |
+
+## Axis throttle
+
+Axis throttle lets you remap the usable range of an axis. This is set per-axis from the stick or trigger configuration.
+
+| Throttle type | Effect |
+|---|---|
+| **Normal** | Full range from minimum to maximum |
+| **Positive half** | Only the positive half of the axis range is used |
+| **Negative half** | Only the negative half of the axis range is used |
+| **Flip** | Inverts the axis direction |
+
+<Note>
+  Throttle settings are most commonly needed for trigger axes. Triggers physically travel in only one direction but may be reported as a full bidirectional axis by SDL2. Setting throttle to **Positive half** or **Negative half** maps the trigger to only the portion of the axis where it actually produces values.
+</Note>

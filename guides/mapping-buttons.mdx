@@ -1,0 +1,172 @@
+---
+title: "Mapping buttons"
+description: "Learn how to assign keyboard keys, mouse buttons, mouse movement, and scripts to any gamepad button using AntiMicroX."
+---
+
+The main window displays a visual diagram of your connected controller. Every button, trigger, and d-pad direction appears as a labeled widget on the diagram. When a button is pressed on the physical gamepad, the corresponding widget highlights in the UI, confirming detection.
+
+## Open the mapping dialog
+
+<Steps>
+  <Step title="Connect your controller">
+    Plug in your gamepad before launching AntiMicroX. The main window will show the detected controller by name at the top. If multiple controllers are connected, use the tab strip to switch between them.
+  </Step>
+  <Step title="Click a button widget">
+    Click on any button widget in the controller diagram. The **Button Edit** dialog opens, showing the current assignment for that button (empty by default).
+  </Step>
+  <Step title="Assign an action">
+    Use the virtual keyboard and mouse layout in the dialog to choose the type of action. Press the desired key on your physical keyboard or click a mouse button to record it as the assignment.
+  </Step>
+  <Step title="Confirm and close">
+    Close the dialog. The button widget in the main window will now display the mapped action as a label. Assignments take effect immediately.
+  </Step>
+  <Step title="Open Advanced for more options">
+    Click **Advanced** in the Button Edit dialog to access button slots, turbo, toggle, delays, macros, and script execution.
+  </Step>
+</Steps>
+
+## Mapping target types
+
+<Tabs>
+  <Tab title="Keyboard">
+    Click the button widget, then press the keyboard key you want to assign in the Button Edit dialog. The key code is captured automatically — you do not need to type anything into a text field.
+
+    Common keyboard mappings:
+
+    | Gamepad button | Typical assignment |
+    |---|---|
+    | Left stick up | `W` |
+    | Left stick down | `S` |
+    | Left stick left | `A` |
+    | Left stick right | `D` |
+    | South face button | `Space` |
+    | East face button | `E` (interact) |
+    | Start / Menu | `Escape` |
+
+    The underlying slot type is `JoyKeyboard`. Any key the system can produce can be mapped, including modifier keys (`Shift`, `Ctrl`, `Alt`) and function keys (`F1`–`F12`).
+
+    <Tip>
+      To assign a combination like `Ctrl+C`, use the **Advanced** dialog. Add a `Pause` slot between the modifier and the main key, or use **Join** to press them simultaneously. See [Macros and scripts](/guides/macros-scripts) for a step-by-step example.
+    </Tip>
+  </Tab>
+  <Tab title="Mouse">
+    In the Button Edit dialog, switch to the **Mouse** tab to map mouse buttons or mouse movement directions.
+
+    **Mouse buttons available:**
+
+    | Slot type | Action |
+    |---|---|
+    | `JoyMouseButton` — Left (1) | Primary click |
+    | `JoyMouseButton` — Middle (2) | Middle click |
+    | `JoyMouseButton` — Right (3) | Secondary click |
+    | `JoyMouseButton` — Wheel Up (4) | Scroll up |
+    | `JoyMouseButton` — Wheel Down (5) | Scroll down |
+    | `JoyMouseButton` — Wheel Left (6) | Scroll left |
+    | `JoyMouseButton` — Wheel Right (7) | Scroll right |
+
+    **Mouse movement directions:**
+
+    | Slot type | Direction |
+    |---|---|
+    | `JoyMouseMovement` — Up | Move cursor up |
+    | `JoyMouseMovement` — Down | Move cursor down |
+    | `JoyMouseMovement` — Left | Move cursor left |
+    | `JoyMouseMovement` — Right | Move cursor right |
+
+    Mouse movement mappings are most useful for individual buttons. For smooth analog cursor control with an analog stick, see [Analog sticks and axes](/guides/analog-sticks).
+  </Tab>
+  <Tab title="Script / Executable">
+    Open the **Advanced** dialog and set the slot type to **Execute**. Use the file browser to locate the script or executable you want to run.
+
+    ```bash
+    #!/bin/bash
+    # Example: a shell script launched from a gamepad button
+    notify-send "Gamepad button pressed"
+    ```
+
+    The executable is launched as a child process when the button is pressed. The process runs with the same user account and permissions as AntiMicroX.
+
+    The underlying slot type is `JoyExecute`.
+
+    <Warning>
+      The execute slot runs the binary directly without a shell. Shell scripts must start with a proper shebang line (e.g., `#!/bin/bash`) and have the execute bit set. Run `chmod +x script.sh` before assigning it.
+    </Warning>
+  </Tab>
+</Tabs>
+
+## Mapping type summary
+
+<CardGroup cols={2}>
+  <Card title="Keyboard keys" icon="keyboard" href="/guides/mapping-buttons">
+    Map any gamepad button to a keyboard key or modifier. Supports all keys the system can produce, including `Shift`, `Ctrl`, `Alt`, and `F1`–`F12`.
+  </Card>
+  <Card title="Mouse buttons" icon="computer-mouse" href="/guides/mapping-buttons">
+    Map gamepad buttons to left, middle, or right mouse clicks, plus all four scroll wheel directions.
+  </Card>
+  <Card title="Mouse movement" icon="arrow-pointer" href="/guides/mapping-buttons">
+    Move the mouse cursor up, down, left, or right from a button press. For smooth cursor control, use an analog stick instead.
+  </Card>
+  <Card title="Scripts and executables" icon="terminal" href="/guides/mapping-buttons">
+    Launch any external program or shell script on a button press. Useful for toggling overlays, sending notifications, or automating system tasks.
+  </Card>
+</CardGroup>
+
+## Button slots
+
+Each button can hold **multiple slots** — an ordered list of actions that fire in sequence when the button is pressed. This is configured in the **Advanced** dialog.
+
+Slot types available in the Advanced dialog:
+
+| Slot type | Purpose |
+|---|---|
+| **KB/Mouse** | Keyboard key or mouse button press |
+| **Cycle** | Cycle through a list of assignments on repeated presses |
+| **Delay** | Wait a fixed time before continuing the slot sequence |
+| **Distance** | Trigger only when an axis reaches a certain distance |
+| **Execute** | Run an external script or program |
+| **Hold** | Hold a key for a duration while the button remains pressed |
+| **Load Profile** | Switch to a different profile |
+| **Mouse Mod** | Temporarily change mouse speed |
+| **Pause** | Pause between slot actions (in milliseconds) |
+| **Press Time** | Trigger based on how long the button has been held |
+| **Release** | Action performed on button release |
+| **Set Change** | Switch the active mapping set |
+| **Text Entry** | Type a string of text |
+
+<AccordionGroup>
+  <Accordion title="How multiple slots work">
+    When a button has multiple slots, they execute in order from top to bottom. For example:
+
+    1. Slot 1: Press `Left Ctrl`
+    2. Slot 2: Pause 30 ms
+    3. Slot 3: Press `C`
+    4. Slot 4: Pause 30 ms
+    5. Slot 5: Release `C`
+    6. Slot 6: Release `Left Ctrl`
+
+    This sequence simulates `Ctrl+C` on a single gamepad button press.
+
+    Use the **Insert** and **Delete** buttons in the Advanced dialog to manage the slot list. See [Macros and scripts](/guides/macros-scripts) for more detail.
+  </Accordion>
+  <Accordion title="Joining and splitting slots">
+    The Advanced dialog supports **Join** (combine two slots to fire simultaneously) and **Split** (separate a joined slot back into individual slots). This enables true simultaneous key presses such as modifier combinations where both keys must be held at exactly the same time.
+  </Accordion>
+</AccordionGroup>
+
+## Toggle and turbo
+
+These behaviors are available in both the Button Edit dialog and the Advanced dialog.
+
+**Toggle** — When enabled, the first press activates the mapped action and the second press deactivates it. Useful for abilities or modes that should stay active without holding the button.
+
+**Turbo** — When enabled, the button rapidly fires the mapped action while held, at an interval you set (in milliseconds). Three turbo modes are available:
+
+| Turbo mode | Behavior |
+|---|---|
+| **Normal** | Fires repeatedly at a fixed interval |
+| **Gradient** | Gradually increases firing speed the longer the button is held |
+| **Pulse** | Alternates between the start and end of the turbo interval |
+
+<Note>
+  Toggle and turbo cannot be active at the same time on the same button.
+</Note>

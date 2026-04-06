@@ -1,0 +1,71 @@
+---
+title: "Introduction"
+description: "AntiMicroX is a graphical program for mapping gamepad buttons to keyboard, mouse, scripts, and macros on Linux and Windows."
+---
+
+## What is AntiMicroX?
+
+AntiMicroX lets you use any gamepad or joystick to control your desktop applications. It provides a visual interface where you click a button on a controller diagram and assign it a keyboard key, mouse action, script, or macro — no coding required.
+
+You can use AntiMicroX to play keyboard-only games with a controller, control media playback, navigate your desktop, or automate repetitive input sequences. It works on Linux (both X.org and Wayland) and Windows.
+
+## Features
+
+- **Button mapping** — Map gamepad buttons to keyboard keys, mouse buttons, mouse movement, scripts and executables, or macros combining any of the above
+- **Analog stick and axis mapping** — Assign axes to WASD-style movement, mouse look, or custom key sequences with configurable dead zones and sensitivity
+- **Hat (D-pad) support** — Map directional pad inputs independently
+- **Gyroscope and accelerometer support** — Use motion controls from compatible controllers
+- **Multiple mapping sets** — Assign up to 8 switchable sets of mappings to a single gamepad, switchable on the fly
+- **Auto profiles** — Automatically load a profile when a specific application window becomes active (X.org only)
+- **SDL2 configuration generation** — Generate SDL2 gamepad configuration strings, useful for mapping atypical controllers to standard layouts
+- **D-Bus interface** — Control AntiMicroX programmatically via D-Bus on Linux (Qt6 builds)
+- **System tray integration** — Run minimized in the system tray while mappings stay active
+- **Profile sharing** — Import and export `.amgp` profile files to share mappings with other users
+
+## Supported platforms
+
+| Platform | Status |
+|----------|--------|
+| Linux (X.org) | Fully supported, including auto profiles |
+| Linux (Wayland) | Supported; auto profiles not available |
+| Windows | Supported |
+
+## Supported input types
+
+AntiMicroX reads input from SDL2-compatible devices and supports the following input types:
+
+- **Buttons** — Standard digital inputs (face buttons, shoulder buttons, etc.)
+- **Axes** — Analog inputs such as thumbsticks and triggers
+- **Hats** — D-pad directional inputs reported as hat switches
+- **Gyroscope** — Rotational motion data from supported controllers
+- **Accelerometer** — Linear acceleration data from supported controllers
+
+## Project history
+
+AntiMicroX is a continuation of the original **AntiMicro** project, which was created by Travis Nickles (Ryochan7) and later abandoned. It was first revived by Jagoda Górska (juliagoda) as a fork, then moved to the AntiMicroX organization for broader community maintenance.
+
+Legacy repositories:
+- Original AntiMicro: [Ryochan7/antimicro](https://github.com/Ryochan7/antimicro)
+- Second AntiMicro maintained fork: [AntiMicro/antimicro](https://github.com/AntiMicro/antimicro)
+- First AntiMicroX fork: [juliagoda/antimicroX](https://github.com/juliagoda/antimicroX)
+
+## License
+
+AntiMicroX is free and open-source software, released under the **GNU General Public License v3.0 (GPL-3.0)**. The full license text is available in the [LICENSE file](https://github.com/AntiMicroX/antimicrox/blob/master/LICENSE) in the repository, or at [gnu.org/licenses/gpl.txt](http://www.gnu.org/licenses/gpl.txt).
+
+## Where to go next
+
+<CardGroup cols={2}>
+  <Card title="Quick start" icon="rocket" href="/quickstart">
+    Create your first gamepad mapping in minutes.
+  </Card>
+  <Card title="Mapping buttons" icon="gamepad" href="/guides/mapping-buttons">
+    Learn how to map buttons, axes, and hats to keyboard and mouse actions.
+  </Card>
+  <Card title="Profiles" icon="folder" href="/guides/profiles">
+    Save, load, and share your mapping configurations.
+  </Card>
+  <Card title="Command line" icon="terminal" href="/advanced/command-line">
+    Launch AntiMicroX with profiles and options from the terminal.
+  </Card>
+</CardGroup>

@@ -1,0 +1,169 @@
+---
+title: "Troubleshooting"
+description: "Diagnose and fix common issues with controller detection and input mapping in AntiMicroX."
+---
+
+<AccordionGroup>
+  <Accordion title="Controller not detected">
+    AntiMicroX uses SDL2 for controller detection. If your controller does not appear:
+
+    1. Make sure the controller is plugged in **before** launching AntiMicroX, or use **File → Refresh Joysticks** after connecting.
+    2. Run `antimicrox --list` to check whether SDL2 detects the device at all.
+    3. Test with `sdl2-jstest` or `evtest` outside of AntiMicroX to confirm the device is visible to the OS.
+
+    ```bash
+    # List SDL joysticks
+    sdl2-jstest --list
+
+    # Test raw input events
+    sudo evtest
+    ```
+
+    If `sdl2-jstest` does not show your controller, the issue is at the kernel or driver level, not AntiMicroX.
+  </Accordion>
+
+  <Accordion title="Buttons or axes not registering correctly">
+    If AntiMicroX detects the controller but buttons or axes behave unexpectedly (wrong button numbers, missing axes):
+
+    - Your controller may be recognized as a generic joystick rather than a game controller. Open the **Game Controller Mapping** dialog to define a proper SDL2 mapping. See [SDL2 game controller mapping](/configuration/sdl-mapping).
+    - Use `sdl2-jstest --test <index>` to verify raw axis and button numbers.
+    - On Linux, prefer `evtest` over older `jstest` tools — SDL2 uses the evdev interface, not joydev.
+  </Accordion>
+
+  <Accordion title="Mapped keys have no effect">
+    If AntiMicroX shows input but the mapped keys don't reach applications:
+
+    **On Linux (X11):** AntiMicroX defaults to XTest for event generation. Ensure the `libxtst` library is installed and the `WITH_XTEST` build option was enabled.
+
+    **On Linux (Wayland):** XTest does not work under Wayland. Switch to the uinput backend:
+
+    ```bash
+    antimicrox --eventgen uinput
+    ```
+
+    You may also need to ensure your user has permission to access `/dev/uinput`. The udev rule installed by AntiMicroX handles this, but it may require a re-login or reboot to take effect.
+
+    ```bash
+    # Check if the rule is installed
+    ls /etc/udev/rules.d/60-antimicrox-uinput.rules
+
+    # Reload udev rules without rebooting
+    sudo udevadm control --reload-rules && sudo udevadm trigger
+    ```
+
+    **On Flatpak:** The sandboxed Flatpak may not have access to uinput. See the [wiki fix](https://github.com/AntiMicroX/antimicrox/wiki/Open-uinput-error) for the uinput workaround.
+  </Accordion>
+
+  <Accordion title="uinput permission error">
+    If AntiMicroX reports it cannot open `/dev/uinput`:
+
+    ```bash
+    # Check current permissions
+    ls -la /dev/uinput
+
+    # Add your user to the 'input' group (may vary by distro)
+    sudo usermod -aG input $USER
+
+    # Or apply the udev rule manually
+    echo 'KERNEL=="uinput", SUBSYSTEM=="misc", TAG+="uaccess"' | \
+      sudo tee /etc/udev/rules.d/60-antimicrox-uinput.rules
+    sudo udevadm control --reload-rules && sudo udevadm trigger
+    ```
+
+    Log out and back in for group membership changes to take effect.
+  </Accordion>
+
+  <Accordion title="Auto-profiles not switching">
+    Auto-profiles require an active X11 session to detect window focus. They do **not** work on Wayland.
+
+    On X11, check:
+    - The auto-profile is enabled in **Main Settings → Auto Profiles**.
+    - The executable path or window class matches exactly. Use `xprop` to verify:
+
+      ```bash
+      # Click a window when prompted
+      xprop WM_CLASS WM_COMMAND
+      ```
+
+    - AntiMicroX is running with access to the X display (`DISPLAY` environment variable is set).
+  </Accordion>
+
+  <Accordion title="Analog stick drifts or misbehaves">
+    Drift is usually caused by the dead zone being too small or the stick not centering perfectly:
+
+    - Open the **Stick** or **Axis** edit dialog and increase the **dead zone** value. The XInput standard is 8,000; try values between 2,000 and 10,000.
+    - If the stick only drifts in one direction (e.g., southwest), increase the dead zone slightly until drift stops.
+    - Use the **Calibration** dialog (**Tools → Calibration**) to correct systematic offset or gain errors. See [Controller calibration](/configuration/calibration).
+  </Accordion>
+
+  <Accordion title="Mouse movement is too fast or jerky">
+    For analog stick → mouse mapping:
+
+    - Increase the **diagonal range** to 89–90° for more responsive mouse control.
+    - Decrease the **dead zone** slightly (e.g., from 8,000 to 6,000) for more sensitivity, accepting minor drift.
+    - Adjust **extra acceleration**: increase the **extra duration** for smoother ramp-up; use **Ease Out Quad** curve instead of Linear.
+    - Lower the **mouse refresh rate** in **Main Settings** if movement appears jerky.
+  </Accordion>
+
+  <Accordion title="Profile not loading at startup">
+    If `--profile` on the command line does not apply:
+
+    - Confirm the file path is absolute and the file exists:
+      ```bash
+      ls -la ~/profiles/mygame.amgp
+      ```
+    - If AntiMicroX is already running, the command-line profile update is sent to the existing instance. Check that the existing instance is not overriding it with a saved setting.
+    - Check the log output for errors:
+      ```bash
+      antimicrox --profile ~/profiles/mygame.amgp --log-level debug
+      ```
+  </Accordion>
+
+  <Accordion title="Enabling debug output">
+    On some systems, `qDebug()` output is suppressed by default. To enable it:
+
+    ```bash
+    mkdir -p ~/.config/QtProject
+    printf '[Rules]\n*.debug=true\nqt.*.debug=false\n' > ~/.config/QtProject/qtlogging.ini
+    ```
+
+    Then run:
+    ```bash
+    antimicrox --log-level debug
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Testing controllers outside AntiMicroX
+
+The two recommended tools for independent controller testing on Linux are:
+
+| Tool | Purpose |
+|------|---------|
+| `sdl2-jstest` | Test SDL2 joystick/game controller detection and input |
+| `evtest` | Test raw Linux evdev input events |
+
+```bash
+# Install on Debian/Ubuntu
+sudo apt install sdl2-jstest evtest
+
+# List SDL joysticks
+sdl2-jstest --list
+
+# Test a specific joystick interactively
+sdl2-jstest --test 0
+
+# Test evdev events (requires root or input group)
+sudo evtest
+```
+
+If your controller works in `sdl2-jstest` but not in AntiMicroX, the issue is likely a missing SDL2 game controller mapping. See [SDL2 game controller mapping](/configuration/sdl-mapping).
+
+<CardGroup cols={2}>
+  <Card title="SDL2 game controller mapping" icon="map" href="/configuration/sdl-mapping">
+    Set up mappings for non-standard controllers.
+  </Card>
+  <Card title="Controller calibration" icon="sliders" href="/configuration/calibration">
+    Fix drift and axis accuracy issues.
+  </Card>
+</CardGroup>

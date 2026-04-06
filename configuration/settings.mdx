@@ -1,0 +1,182 @@
+---
+title: "Application settings"
+description: "Configure AntiMicroX behavior including language, system tray, mouse settings, polling rate, and auto-profiles."
+---
+
+AntiMicroX stores its preferences in a single INI file. Open the settings dialog from the menu bar to adjust any of the options below.
+
+<Note>
+  On Linux, settings are stored at `~/.config/antimicrox/antimicrox_settings.ini`. You can inspect or hand-edit this file when AntiMicroX is not running. On Windows, settings are written to the registry and to a file in the application data directory.
+</Note>
+
+## Opening the settings dialog
+
+Go to **Edit → Settings** (or press the settings button in the toolbar) to open the Main Settings dialog. Settings are organized into tabs along the left-hand categories list.
+
+---
+
+## General
+
+<AccordionGroup>
+  <Accordion title="Profile directory">
+    | Setting | Key | Default | Description |
+    |---|---|---|---|
+    | Default profile directory | `DefaultProfileDir` | AntiMicroX data directory | Base directory where AntiMicroX looks for and saves `.amgp` profile files. Click the folder button to browse. |
+    | Number of recent profiles | `NumberRecentProfiles` | `5` | How many recently used profiles appear in the tray menu and the **File → Recent** list. |
+    | Auto-load last profile on startup | `AutoOpenLastProfile` | `true` | When enabled, AntiMicroX re-opens the profile that was active when it was last closed. |
+  </Accordion>
+
+  <Accordion title="System tray behavior">
+    | Setting | Key | Default | Description |
+    |---|---|---|---|
+    | Launch in system tray | `LaunchInTray` | `false` | Start AntiMicroX minimized to the system tray instead of showing the main window. Can also be set with the `--tray` command-line flag. |
+    | Close to tray | `CloseToTray` | `false` | Clicking the window close button hides AntiMicroX to the tray rather than quitting. |
+    | Minimize to taskbar | `MinimizeToTaskbar` | `true` (Linux) / `false` (Windows) | Keep the main window visible in the taskbar when minimized. |
+    | Single profile list in tray | `TrayProfileList` | `false` | Show a single combined profile list in the tray menu instead of per-device lists. |
+  </Accordion>
+
+  <Accordion title="Display">
+    | Setting | Key | Default | Description |
+    |---|---|---|---|
+    | Hide empty buttons | `HideEmptyButtons` | `false` | Suppress buttons with no assigned action from the main window grid, reducing visual clutter. |
+    | Attach numpad | `AttachNumKeypad` | `false` | Treat the numeric keypad as a separate input region on the button grid. |
+  </Accordion>
+
+  <Accordion title="Notifications">
+    | Setting | Key | Default | Description |
+    |---|---|---|---|
+    | Notify on low battery | `Notifications/notify_about_low_battery` | `true` | Show a desktop notification when a wireless controller battery is low. |
+    | Notify on empty battery | `Notifications/notify_about_empty_battery` | `true` | Show a desktop notification when a wireless controller battery is critically empty. |
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Language
+
+<AccordionGroup>
+  <Accordion title="Language selection">
+    AntiMicroX ships translations managed through [Weblate](https://hosted.weblate.org/engage/antimicrox/). The language combo box lists all available locales. Changing the language requires restarting AntiMicroX to take effect.
+
+    The selected locale is stored as a locale code (e.g. `de`, `pl`, `zh_CN`) under the `Language` key in the settings file. If no locale is chosen, AntiMicroX uses the system locale detected by Qt.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Mouse
+
+<AccordionGroup>
+  <Accordion title="Mouse refresh rate">
+    | Setting | Key | Default | Description |
+    |---|---|---|---|
+    | Mouse refresh rate | `Mouse/RefreshRate` | System default | Interval in milliseconds at which AntiMicroX emits mouse movement events. Lower values produce smoother movement but increase CPU usage. The combo box ranges from **1 ms** to the configured maximum. |
+  </Accordion>
+
+  <Accordion title="Spring mode screen">
+    Spring mode causes the mouse cursor to return to a fixed point when the stick is centered. The **Spring mode screen** combo box selects which monitor the spring origin is anchored to when multiple displays are connected.
+
+    The selected screen index is stored under `Mouse/SpringScreen`.
+  </Accordion>
+
+  <Accordion title="Mouse smoothing">
+    Smoothing averages recent mouse movement samples to eliminate jitter from imprecise analog sticks.
+
+    | Setting | Key | Default | Description |
+    |---|---|---|---|
+    | Enable smoothing | `Mouse/Smoothing` | `false` | Master toggle for the smoothing subsystem. |
+    | History size | `Mouse/HistorySize` | `0` | Number of past samples included in the weighted average. Larger values increase smoothing but add latency. |
+    | Weight modifier | `Mouse/WeightModifier` | `0` | A multiplier applied during the weighted average calculation. Higher values give more weight to recent samples. |
+
+    Enabling smoothing activates the **History size** and **Weight modifier** spin boxes. Disabling smoothing resets both values to `1` and `0` respectively at runtime.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Gamepad polling
+
+<AccordionGroup>
+  <Accordion title="Gamepad poll rate">
+    | Setting | Key | Default | Description |
+    |---|---|---|---|
+    | Gamepad poll rate | `GamepadPollRate` | System default | Interval in milliseconds between SDL gamepad state reads. The combo box offers values from **1 ms** to **16 ms**. Lower values reduce input latency. |
+
+    The poll rate is distinct from the mouse refresh rate — you can poll the gamepad at 1 ms while emitting mouse events less frequently, or vice versa.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Auto-profiles
+
+Auto-profiles allow AntiMicroX to switch active profiles automatically based on the currently focused application window.
+
+<Note>
+  Auto-profiles require X11 on Linux. The feature is disabled on Wayland and on plain Wayland compositors. On Windows, auto-profiles are fully supported.
+</Note>
+
+<AccordionGroup>
+  <Accordion title="Enabling auto-profiles">
+    Check **Enable auto-profiles** in the Auto-Profile tab. Once enabled, the profile table and management buttons become active.
+
+    The master switch is stored under `AutoProfiles/AutoProfilesActive`.
+  </Accordion>
+
+  <Accordion title="Managing profile rules">
+    Each row in the profile table maps an executable name (or window class) to a specific profile file and optionally a specific gamepad GUID. Columns include:
+
+    | Column | Description |
+    |---|---|
+    | Profile | Path to the `.amgp` profile file to load |
+    | Application | Executable or window class name to match |
+    | Device | Gamepad GUID this rule applies to (blank = all devices) |
+    | Active | Checkbox to enable or disable the rule without deleting it |
+
+    Use **Add**, **Edit**, and **Delete** buttons to manage rules. A separate **All controllers default** profile can be set to act as a fallback when no rule matches.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Advanced
+
+<AccordionGroup>
+  <Accordion title="Log settings">
+    | Setting | Key | Default | Description |
+    |---|---|---|---|
+    | Log level | `LogLevel` | `0` (none) | Verbosity of the AntiMicroX log. `0` = none, `1` = error, `2` = warn, `3` = info, `4` = verbose, `5` = debug. |
+    | Log file | `LogFile` | _(empty)_ | Path to a file where log output is written. Leave empty to log only to the console/system journal. |
+
+    Click the folder icon next to the log file field to browse for a path. Changes take effect immediately after clicking **OK**.
+  </Accordion>
+
+  <Accordion title="Controller mappings table">
+    The **Controller Mappings** table in the Advanced tab lists all SDL2 game controller mapping strings stored in `[Mappings]`. Each row shows a GUID, the mapping string, and a **Disable** checkbox.
+
+    Checking **Disable** for a GUID tells AntiMicroX to treat that device as a raw joystick rather than a game controller, which can help when SDL misidentifies a device. See [SDL2 game controller mapping](/configuration/sdl-mapping) for details on the mapping string format.
+  </Accordion>
+
+  <Accordion title="Windows-specific settings">
+    The following settings are only visible on Windows:
+
+    | Setting | Key | Default | Description |
+    |---|---|---|---|
+    | Launch at Windows startup | _(startup shortcut)_ | `false` | Creates a shortcut in the Windows Startup folder so AntiMicroX launches when you log in. |
+    | Associate profiles with AntiMicroX | `AssociateProfiles` | `true` | Register `.amgp` as a file association in the Windows registry. |
+    | Disable Enhanced Pointer Precision | `Mouse/DisableWinEnhancedPointer` | `false` | Disables the Windows "Enhance Pointer Precision" setting, which can interfere with precise mouse speed control. Recommended when using low mouse refresh rates. |
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Related pages
+
+<CardGroup cols={2}>
+  <Card title="Controller calibration" icon="crosshairs" href="/configuration/calibration">
+    Fix analog stick drift and centering issues with the built-in calibration tool.
+  </Card>
+  <Card title="SDL2 game controller mapping" icon="map-pin" href="/configuration/sdl-mapping">
+    Generate and manage SDL2 mapping strings for non-standard gamepads.
+  </Card>
+</CardGroup>

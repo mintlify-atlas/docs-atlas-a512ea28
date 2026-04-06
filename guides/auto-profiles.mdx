@@ -1,0 +1,121 @@
+---
+title: "Auto-profiles"
+description: "Automatically load the right AntiMicroX profile when a specific application window becomes active."
+---
+
+Auto-profiles let AntiMicroX detect which application is in the foreground and automatically load the matching profile. When you switch from one game to another, your controller mappings update without any manual intervention.
+
+AntiMicroX checks the active window every **500 milliseconds** using the `AutoProfileWatcher`. When a match is found, the corresponding profile is loaded for the associated controller.
+
+<Warning>
+  Auto-profiles are **not supported on Wayland**. The feature depends on querying the active window through X11. If you are running a Wayland session, auto-profiles will not function. See the [tracking issue](https://github.com/AntiMicroX/antimicrox/issues/303) for status updates.
+</Warning>
+
+## How auto-profiles work
+
+`AutoProfileWatcher` stores a list of associations between applications and profiles. Each association (`AutoProfileInfo`) records:
+
+- The target application (by executable name, window class, or window title)
+- The profile file to load
+- Which controller (by unique ID) the profile applies to
+- Whether the association is active
+
+When the watcher detects that the focused window matches a registered application, it emits `foundApplicableProfile` and AntiMicroX loads the corresponding profile for the specified controller.
+
+## Setting up auto-profiles
+
+<Steps>
+  <Step title="Open Settings">
+    Click **Edit → Settings** (or the gear icon) to open the **Main Settings** dialog.
+  </Step>
+  <Step title="Go to the Auto-Profiles tab">
+    Select the **Auto Profiles** tab. The table shows all currently configured auto-profile associations.
+  </Step>
+  <Step title="Add a new association">
+    Click **Add**. The **Add Auto Profile** dialog opens.
+  </Step>
+  <Step title="Set the application target">
+    Fill in one or more of the following fields to identify the application:
+
+    | Field | Description |
+    |---|---|
+    | **Executable** | Full path to the application binary (e.g., `/usr/bin/firefox`) |
+    | **Window class** | X11 window class string (e.g., `firefox`) |
+    | **Window name** | Full or partial window title (e.g., `Firefox`) |
+
+    You can enable **partial title matching** to match any window whose title contains the specified string, rather than requiring an exact match.
+  </Step>
+  <Step title="Select the profile">
+    Browse for the `.amgp` profile file you want to load when this application is active.
+  </Step>
+  <Step title="Select the controller">
+    Choose which controller this association applies to, or select **All controllers** to apply it regardless of which controller is connected.
+  </Step>
+  <Step title="Enable and save">
+    Check the **Active** checkbox and click **OK**. The new association appears in the auto-profiles table. Click **Save** in the Settings dialog to persist the configuration.
+  </Step>
+</Steps>
+
+## Application matching methods
+
+AntiMicroX supports three ways to identify the target application:
+
+<AccordionGroup>
+  <Accordion title="Executable path">
+    Match by the full path to the running binary. This is the most precise method and avoids false matches when multiple applications share a similar window title.
+
+    Example: `/usr/bin/supertuxkart`
+
+    The `AutoProfileWatcher` reads the executable associated with the active window's process.
+  </Accordion>
+  <Accordion title="Window class">
+    Match by the X11 window class string. Window class is set by the application and is typically stable across versions.
+
+    Use `xprop WM_CLASS` and click the application window to find its class string on Linux.
+
+    Example output:
+    ```
+    WM_CLASS(STRING) = "supertuxkart", "supertuxkart"
+    ```
+  </Accordion>
+  <Accordion title="Window title (name)">
+    Match by the window's title bar text. Enable **partial title matching** if the title changes (e.g., includes the current level or file name).
+
+    Example: Match any window whose title contains `SuperTuxKart`.
+
+    <Note>
+      Partial title matching is less precise than executable or class matching and may trigger for unintended windows. Prefer executable or class matching when possible.
+    </Note>
+  </Accordion>
+</AccordionGroup>
+
+## The default profile
+
+A **default profile** is loaded when no application-specific auto-profile matches the active window. You can configure a separate default profile per controller, or a single default for all controllers.
+
+In the auto-profiles table, the default entry appears with the application column showing **All** or the controller name. When you switch to a window that has no specific association, AntiMicroX falls back to this default.
+
+<Tip>
+  Set your general-purpose profile (the one you use at the desktop or for applications without a specific mapping) as the default profile. This ensures your controller always has a sensible mapping even when auto-profiles do not find a specific match.
+</Tip>
+
+## Checking the active window (Linux)
+
+To identify the correct executable or window class for a target application:
+
+```bash
+# Get the executable of the currently focused window
+xdotool getactivewindow getwindowpid | xargs -I{} readlink -f /proc/{}/exe
+
+# Get the window class of the currently focused window
+xprop WM_CLASS
+# (then click on the application window)
+```
+
+## Wayland limitation
+
+Auto-profiles rely on X11 APIs to query the active window. On Wayland sessions, those APIs are unavailable or return empty results, so the window-watching loop cannot detect application focus changes.
+
+<Warning>
+  If you need auto-profiles, run AntiMicroX in an X11 session (including XWayland). A Wayland-native implementation is tracked in [GitHub issue #303](https://github.com/AntiMicroX/antimicrox/issues/303). Check that issue for updates on Wayland support.
+</Warning>

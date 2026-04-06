@@ -1,0 +1,184 @@
+---
+title: "Building from source"
+description: "Compile AntiMicroX from source using CMake on Linux or Windows."
+---
+
+Pre-built packages for all supported platforms are available on the [releases page](https://github.com/AntiMicroX/antimicrox/releases). If you need a custom build or want to contribute, follow the steps below.
+
+## Build dependencies
+
+AntiMicroX is written in C++ using the Qt framework and requires SDL2.
+
+<Tabs>
+  <Tab title="Ubuntu / Debian">
+    **Qt6 (recommended):**
+    ```bash
+    sudo apt install g++ cmake extra-cmake-modules \
+      qt6-base-dev qt6-tools-dev-tools libqt6core5compat6-dev qt6-tools-dev \
+      libsdl2-dev libxi-dev libxtst-dev libx11-dev \
+      itstool gettext ninja-build
+    ```
+
+    **Qt5 (alternative):**
+    ```bash
+    sudo apt install g++ cmake extra-cmake-modules \
+      qttools5-dev qttools5-dev-tools \
+      libsdl2-dev libxi-dev libxtst-dev libx11-dev \
+      itstool gettext ninja-build
+    ```
+  </Tab>
+  <Tab title="Fedora">
+    ```bash
+    sudo dnf install git make cmake gcc extra-cmake-modules \
+      qt6-qttools-devel SDL2-devel \
+      libXi-devel libXtst-devel libX11-devel \
+      itstool gettext-devel
+    ```
+  </Tab>
+  <Tab title="Arch Linux">
+    ```bash
+    sudo pacman -S base-devel cmake extra-cmake-modules \
+      qt6-base qt6-tools sdl2 \
+      libxi libxtst itstool gettext
+    ```
+  </Tab>
+  <Tab title="Windows">
+    On Windows you need Qt, SDL2, CMake, and a compiler. The recommended toolchains are:
+
+    - **MSYS2** with MinGW — install Qt6 and SDL2 via `pacman`
+    - **MSVC** (Visual Studio 2017+) — install Qt and [SDL2-devel](https://github.com/libsdl-org/SDL/releases/) separately
+
+    For MSVC, open the project folder in Visual Studio 2022 and add the CMake argument:
+    ```
+    -DCMAKE_PREFIX_PATH=C:\Qt\5.9\msvc2017_64\lib\cmake
+    ```
+
+    If SDL2 is not found automatically, set `SDL2_PATH`, `SDL2_INCLUDE_DIR`, and `SDL2_DLL_LOCATION_DIR` in the CMake cache.
+  </Tab>
+</Tabs>
+
+## Basic build
+
+<Steps>
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/AntiMicroX/antimicrox.git
+    cd antimicrox
+    ```
+  </Step>
+  <Step title="Configure with CMake">
+    ```bash
+    mkdir build && cd build
+    cmake ..
+    ```
+  </Step>
+  <Step title="Compile">
+    ```bash
+    cmake --build .
+    ```
+  </Step>
+  <Step title="Run the built binary">
+    ```bash
+    ./bin/antimicrox
+    ```
+  </Step>
+</Steps>
+
+## CMake build options
+
+Pass these options to `cmake ..` to customize the build:
+
+### Universal options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `-DCMAKE_BUILD_TYPE` | *(not set)* | Set to `Debug` for debug flags and stack traces, `Release` for optimized builds |
+| `-DBUILD_DOCS` | `OFF` | Build Doxygen API documentation (requires `doxygen` and `dot`) |
+| `-DUPDATE_TRANSLATIONS` | `OFF` | Run `lupdate` to update translation files from source |
+| `-DTRANS_REMOVE_OBSOLETE` | `OFF` | Pass `-noobsolete` to `lupdate` to remove stale translation entries |
+| `-DCHECK_FOR_UPDATES` | `OFF` | Show an update button in the GUI when a newer version is available |
+| `-DWITH_TESTS` | `OFF` | Enable unit test targets |
+| `-DANTIMICROX_PKG_VERSION` | *(not set)* | Override the version string shown in the About dialog (e.g. `3.1.7-appimage`) |
+
+### Linux-only options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `-DWITH_X11` | `ON` | Compile with X11 support |
+| `-DWITH_XTEST` | `ON` | Compile with XTest event generation support |
+| `-DWITH_UINPUT` | `ON` | Compile with uinput event generation support |
+| `-DINSTALL_UINPUT_UDEV_RULES` | `ON` | Install a udev rule granting non-root access to `/dev/uinput` |
+| `-DAPPDATA` | `ON` | Include AppData/AppStream metadata |
+
+### Windows-only options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `-DPORTABLE_WIN` | `OFF` | Build a portable (no-installer) Windows binary |
+
+## Building packages
+
+<Tabs>
+  <Tab title="DEB">
+    ```bash
+    mkdir build && cd build
+    cmake .. -DCPACK_GENERATOR="DEB"
+    cmake --build . --target package
+    ```
+  </Tab>
+  <Tab title="RPM">
+    ```bash
+    mkdir build && cd build
+    cmake .. -DCPACK_GENERATOR="RPM"
+    cmake --build . --target package
+    ```
+  </Tab>
+  <Tab title="AppImage">
+    ```bash
+    mkdir build && cd build
+
+    # Download tools
+    wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+    wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+    wget https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+    chmod +x linuxdeploy-x86_64.AppImage appimagetool-x86_64.AppImage linuxdeploy-plugin-qt-x86_64.AppImage
+
+    # Build and stage
+    cmake .. -DCMAKE_INSTALL_PREFIX=/usr
+    make
+    make install DESTDIR=AppDir
+
+    # Package
+    ./linuxdeploy-x86_64.AppImage --appdir AppDir --plugin qt
+    ./appimagetool-x86_64.AppImage AppDir/
+    ```
+  </Tab>
+  <Tab title="Flatpak">
+    ```bash
+    flatpak install flathub org.kde.Platform//5.11 org.kde.Sdk//5.11
+    flatpak-builder --user --install build/ other/io.github.antimicrox.antimicrox.yml --force-clean
+    ```
+    The Flathub manifest is at `other/io.github.antimicrox.antimicrox.yml`. The official Flathub manifest is maintained in the [Flathub repository](https://github.com/flathub/io.github.antimicrox.antimicrox).
+  </Tab>
+  <Tab title="Windows installer">
+    Requires [NSIS](https://nsis.sourceforge.io/Download).
+
+    ```
+    cmake -DCMAKE_BUILD_TYPE=Debug -B .\build
+    cmake --build .\build --target package
+    ```
+  </Tab>
+</Tabs>
+
+## Enabling debug output
+
+On some systems, Qt suppresses `qDebug()` output by default. To enable it:
+
+```bash
+mkdir -p ~/.config/QtProject
+printf '[Rules]\n*.debug=true\nqt.*.debug=false\n' > ~/.config/QtProject/qtlogging.ini
+```
+
+<Tip>
+The devcontainer setup in `.devcontainer/` provides a pre-configured Docker environment with all dependencies installed. This is the quickest way to get a working build environment on Linux.
+</Tip>

@@ -1,0 +1,140 @@
+---
+title: "Installation"
+description: "Install AntiMicroX on Windows or Linux using a package manager, pre-built binary, or by building from source."
+---
+
+## Choose your platform
+
+<Tabs>
+  <Tab title="Windows">
+    Download the installer from the [latest release page](https://github.com/AntiMicroX/antimicrox/releases/latest).
+
+    1. Download the file named `antimicrox-X.X.X-AMD64.exe`
+    2. Run the installer and follow the prompts
+    3. Launch AntiMicroX from the Start menu
+
+    No additional dependencies are required.
+  </Tab>
+
+  <Tab title="Flatpak">
+    The Flatpak package is distributed on Flathub and works on most major Linux distributions.
+
+    First, make sure [Flatpak and Flathub are set up](https://flatpak.org/setup/) on your system. Then install:
+
+    ```bash
+    flatpak install flathub io.github.antimicrox.antimicrox
+    ```
+
+    To run AntiMicroX via Flatpak:
+
+    ```bash
+    flatpak run io.github.antimicrox.antimicrox
+    ```
+
+    To avoid typing the full command each time, add an alias to your `~/.bashrc`:
+
+    ```bash
+    alias antimicrox='flatpak run io.github.antimicrox.antimicrox'
+    ```
+
+    <Note>
+      The Flatpak package may not work correctly on Wayland due to uinput device access restrictions. If you encounter an "Open uinput error", follow the [fix described in the wiki](https://github.com/AntiMicroX/antimicrox/wiki/Open-uinput-error).
+    </Note>
+  </Tab>
+
+  <Tab title="AppImage">
+    AppImage packages are self-contained and run on most Linux distributions without installation.
+
+    1. Download the `.AppImage` file from the [latest release page](https://github.com/AntiMicroX/antimicrox/releases/latest)
+    2. Make it executable:
+
+    ```bash
+    chmod +x antimicrox-*.AppImage
+    ```
+
+    3. Run it:
+
+    ```bash
+    ./antimicrox-*.AppImage
+    ```
+
+    For better desktop integration (application menu entry, automatic updates), it is recommended to use [AppImageLauncher](https://github.com/TheAssassin/AppImageLauncher).
+  </Tab>
+
+  <Tab title="Debian/Ubuntu">
+    Download the `.deb` package from the [latest release page](https://github.com/AntiMicroX/antimicrox/releases/latest), then install it:
+
+    ```bash
+    sudo dpkg -i antimicrox_*.deb
+    ```
+
+    If there are missing dependencies, resolve them with:
+
+    ```bash
+    sudo apt-get install -f
+    ```
+  </Tab>
+
+  <Tab title="Fedora">
+    AntiMicroX is available in the Fedora package repositories:
+
+    ```bash
+    dnf install antimicrox
+    ```
+  </Tab>
+
+  <Tab title="openSUSE">
+    AntiMicroX is available in the openSUSE package repositories:
+
+    ```bash
+    zypper install antimicrox
+    ```
+
+    You can also browse the package on the [openSUSE software portal](https://software.opensuse.org/package/antimicrox).
+  </Tab>
+
+  <Tab title="Arch Linux">
+    Install from the AUR using an AUR helper such as `trizen`:
+
+    ```bash
+    trizen -S antimicrox
+    ```
+
+    Alternatively, a pre-built binary is available from the [Chaotic AUR](https://lonewolf.pedrohlc.com/chaotic-aur/) unofficial repository. To use it, append one of the following mirrors to `/etc/pacman.conf`:
+
+    ```ini
+    # Brazil
+    Server = http://lonewolf-builder.duckdns.org/$repo/$arch
+    # Germany
+    Server = http://chaotic.bangl.de/$repo/$arch
+    # USA (Cloudflare cached)
+    Server = https://repo.kitsuna.net/$arch
+    # Netherlands
+    Server = https://chaotic.tn.dedyn.io/$arch
+    ```
+
+    Then add the signing keys:
+
+    ```bash
+    sudo pacman-key --keyserver hkp://keyserver.ubuntu.com -r 3056513887B78AEB 8A9E14A07010F7E3
+    sudo pacman-key --lsign-key 3056513887B78AEB
+    sudo pacman-key --lsign-key 8A9E14A07010F7E3
+    ```
+
+    Install the package:
+
+    ```bash
+    pacman -S antimicrox
+    ```
+  </Tab>
+</Tabs>
+
+## Building from source
+
+If you want to build AntiMicroX yourself — for example, to get the latest unreleased changes or to package it for a distribution — see the [building guide](/contributing/building). It covers all required dependencies and step-by-step build instructions for Linux and Windows.
+
+## Package status
+
+The table below shows the availability and version of the `antimicrox` package across Linux distributions:
+
+[![Packaging status](https://repology.org/badge/vertical-allrepos/antimicrox.svg?columns=3&minversion=3.1)](https://repology.org/project/antimicrox/versions)

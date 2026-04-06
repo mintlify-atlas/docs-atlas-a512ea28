@@ -1,0 +1,182 @@
+---
+title: "SDL2 game controller mapping"
+description: "Map raw joystick axes and buttons to a standard gamepad layout using SDL2 game controller mapping strings."
+---
+
+SDL2 includes a *Game Controller API* that abstracts hardware differences behind a standard virtual layout modeled on the Xbox 360 controller — two analog sticks, two triggers, four face buttons (A/B/X/Y), a D-pad, bumpers, and system buttons. Applications that use the Game Controller API refer to inputs by logical names such as `a`, `leftx`, or `lefttrigger` instead of raw axis and button indices.
+
+For this abstraction to work, SDL2 must know how the physical device's raw axes and buttons map to the standard layout. Well-known controllers ship with a built-in database (`gamecontrollerdb.txt`). For any device **not** in the database — generic joysticks, arcade sticks, unusual gamepads, or older controllers — SDL2 falls back to treating the device as a plain joystick, which can cause AntiMicroX to see it with a different button layout than expected.
+
+AntiMicroX can generate SDL2 mapping strings for unrecognized devices and store them so that SDL2 uses the correct layout every time the device is connected.
+
+---
+
+## Why you need a custom mapping
+
+<AccordionGroup>
+  <Accordion title="Unrecognized or atypical gamepads">
+    If AntiMicroX shows your controller as a plain joystick rather than a game controller, or if face buttons appear in the wrong positions, the device is likely missing a mapping. Without a mapping, SDL2 exposes raw indices — button 0, button 1, axis 0, etc. — with no guarantee of a consistent layout across different drivers or operating systems.
+  </Accordion>
+
+  <Accordion title="Button layout differences between platforms">
+    The same physical controller can report its buttons in a different order on Linux (via evdev) vs. Windows (via XInput or DirectInput). A mapping string encodes the correct correspondence for each platform, ensuring profiles work the same way everywhere.
+  </Accordion>
+
+  <Accordion title="Sharing profiles">
+    Profiles that rely on named controller inputs (A, B, X, Y, etc.) will work correctly on another machine only if both machines have the same SDL2 mapping for that device. Exporting the mapping string alongside the profile solves this portability problem.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## The SDL2 mapping string format
+
+An SDL2 mapping string is a single comma-separated line:
+
+```text
+<GUID>,<Name>,<binding1>:<source1>,<binding2>:<source2>,...,platform:<Platform>
+```
+
+| Field | Description |
+|---|---|
+| `GUID` | A 32-character hexadecimal string identifying the device. SDL2 derives the GUID from vendor ID, product ID, and version. |
+| `Name` | Human-readable controller name. Informational only. |
+| `binding:source` | One or more input assignments (see table below). |
+| `platform` | Target platform. One of `Linux`, `Windows`, or `Mac OS X`. |
+
+### Input binding syntax
+
+| Source format | Meaning |
+|---|---|
+| `bN` | Button index N (e.g. `b0`, `b11`) |
+| `aN` | Full axis N (e.g. `a0`, `a3`) |
+| `aN~` | Inverted axis N |
+| `+aN` | Positive half of axis N (for triggers that share an axis) |
+| `-aN` | Negative half of axis N |
+| `hN.M` | Hat N, direction bitmask M (e.g. `h0.1` = hat 0 up, `h0.4` = hat 0 right) |
+
+### Standard binding names
+
+The left-hand side of each `binding:source` pair must be one of SDL2's standard names:
+
+```text
+a  b  x  y
+back  guide  start
+leftstick  rightstick
+leftshoulder  rightshoulder
+dpup  dpdown  dpleft  dpright
+leftx  lefty
+rightx  righty
+lefttrigger  righttrigger
+```
+
+### Example mapping strings
+
+A PS4 DualShock 4 (USB, Linux):
+
+```text
+030000004c050000c405000000016800,PS4 Controller,a:b1,b:b2,back:b8,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,dpup:h0.1,guide:b12,leftshoulder:b4,leftstick:b10,lefttrigger:a3,leftx:a0,lefty:a1,rightshoulder:b5,rightstick:b11,righttrigger:a4,rightx:a2,righty:a5,start:b9,x:b0,y:b3,platform:Linux,
+```
+
+A generic USB gamepad (Linux):
+
+```text
+030000005e0400008e02000014010000,Microsoft X-Box 360 pad,a:b0,b:b1,back:b6,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,dpup:h0.1,guide:b8,leftshoulder:b4,leftstick:b9,lefttrigger:a2,leftx:a0,lefty:a1,rightshoulder:b5,rightstick:b10,righttrigger:a5,rightx:a3,righty:a4,start:b7,x:b2,y:b3,platform:Linux,
+```
+
+---
+
+## The Game Controller Mapping dialog
+
+AntiMicroX includes a graphical dialog for creating and editing mapping strings without hand-editing text.
+
+<Steps>
+  <Step title="Open the mapping dialog">
+    Right-click the controller tab (or use **Controller → Game Controller Mapping**) to open the **Game Controller Mapping** dialog for the connected device.
+  </Step>
+
+  <Step title="Assign buttons">
+    Each standard button (A, B, X, Y, D-pad directions, shoulders, triggers, sticks, back, start, guide) is shown on screen. Click a button label in the dialog and then press the corresponding physical button or move the corresponding axis on the controller. AntiMicroX detects the raw input index and records the mapping.
+  </Step>
+
+  <Step title="Assign axes and triggers">
+    Analog axes are assigned similarly. Move the physical stick or trigger all the way in one direction after clicking the axis label. AntiMicroX records the axis index and polarity automatically. Trigger axes that share a physical channel can be assigned to `+aN` and `-aN` half-axis sources.
+  </Step>
+
+  <Step title="Set axis dead zone">
+    Use the **Axis Dead Zone** combo box to adjust the threshold below which axis motion is ignored during the mapping process. This prevents noise from being captured as an accidental axis assignment.
+  </Step>
+
+  <Step title="Save the mapping">
+    Click **Save** (or the equivalent **OK** button). AntiMicroX calls `generateSDLMappingString()` internally, which assembles the comma-separated string from all assigned bindings, then writes the result to the `[Mappings]` section of the settings file under the device's GUID key.
+  </Step>
+</Steps>
+
+<Info>
+  The mapping dialog also has a **Remove Mapping** button that deletes the stored string for the current device, reverting it to raw joystick mode on the next launch.
+</Info>
+
+---
+
+## Stored mappings in the settings file
+
+AntiMicroX persists mappings in the `[Mappings]` section of `~/.config/antimicrox/antimicrox_settings.ini`:
+
+```ini
+[Mappings]
+030000004c050000c405000000016800=030000004c050000c405000000016800,PS4 Controller,a:b1,b:b2,...,platform:Linux,
+030000004c050000c405000000016800Disable=false
+```
+
+Two keys are written per device:
+- The GUID key stores the full mapping string.
+- `<GUID>Disable` is a boolean that, when `true`, tells AntiMicroX to treat the device as a plain joystick even if a mapping string is present.
+
+You can toggle this per-device in **Edit → Settings → Advanced → Controller Mappings** by checking the **Disable** column for that device's row.
+
+---
+
+## The SDL_GAMECONTROLLERCONFIG environment variable
+
+SDL2 reads additional mappings from the `SDL_GAMECONTROLLERCONFIG` environment variable before consulting its built-in database. Setting this variable is useful when you want a mapping to apply to **all** SDL2 applications on the system, not just AntiMicroX.
+
+```bash
+export SDL_GAMECONTROLLERCONFIG="030000004c050000c405000000016800,PS4 Controller,a:b1,b:b2,back:b8,dpdown:h0.4,dpleft:h0.8,dpright:h0.2,dpup:h0.1,guide:b12,leftshoulder:b4,leftstick:b10,lefttrigger:a3,leftx:a0,lefty:a1,rightshoulder:b5,rightstick:b11,righttrigger:a4,rightx:a2,righty:a5,start:b9,x:b0,y:b3,platform:Linux,"
+```
+
+To make the variable persistent, add the `export` line to your shell's init file (`~/.bashrc`, `~/.profile`, etc.) or, on systemd-based Linux distributions, write it to a user environment file:
+
+```bash
+systemctl --user import-environment SDL_GAMECONTROLLERCONFIG
+```
+
+Multiple mapping strings can be separated by newlines within the same variable value.
+
+<Tip>
+  When debugging whether a mapping is being picked up correctly, run `sdl2-jstest --list` or `sdl-jstest --list` to see which devices SDL2 identifies as game controllers vs. plain joysticks. If your device appears as a joystick rather than a game controller, SDL2 has not found a matching mapping string.
+</Tip>
+
+---
+
+## Finding a device GUID
+
+AntiMicroX shows the GUID for each connected controller via **D-Bus** (`getDescription()`) or in the controller tab title. You can also query it from the command line:
+
+```bash
+sdl2-jstest --list
+```
+
+The GUID is the 32-hex-character string in the output. Use it as the first field of your mapping string.
+
+---
+
+## Related pages
+
+<CardGroup cols={2}>
+  <Card title="Application settings" icon="sliders" href="/configuration/settings">
+    Manage stored mappings and disable game-controller mode per device in the Settings dialog.
+  </Card>
+  <Card title="Controller calibration" icon="crosshairs" href="/configuration/calibration">
+    Correct analog stick drift and centering after mapping is established.
+  </Card>
+</CardGroup>

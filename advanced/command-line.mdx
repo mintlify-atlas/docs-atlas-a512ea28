@@ -1,0 +1,187 @@
+---
+title: "Command-line interface"
+description: "Launch AntiMicroX with profiles, controllers, and options from the terminal."
+---
+
+AntiMicroX accepts command-line arguments that let you load profiles, target specific controllers, control window visibility, and configure logging — without opening the GUI manually.
+
+Run `antimicrox --help` for a full list, or `man antimicrox` on Linux.
+
+<Note>
+For Flatpak installations, replace `antimicrox` with `flatpak run io.github.antimicrox.antimicrox` in all commands below.
+</Note>
+
+## Options reference
+
+### Profile loading
+
+<AccordionGroup>
+  <Accordion title="--profile &lt;location&gt;">
+    Load a profile file as the default for all connected controllers, or update the active profile of an already-running instance.
+
+    ```bash
+    antimicrox --profile ~/profiles/fps-game.amgp
+    ```
+
+    Combine with `--profile-controller` to target a specific controller.
+  </Accordion>
+
+  <Accordion title="--profile-controller &lt;value&gt;">
+    Apply the profile from `--profile` to a specific controller. The value can be a controller index (1-based), name string, or SDL GUID.
+
+    ```bash
+    # By index
+    antimicrox --profile ~/profiles/fps.amgp --profile-controller 1
+
+    # By name
+    antimicrox --profile ~/profiles/fps.amgp --profile-controller "Xbox 360 Controller"
+
+    # By GUID
+    antimicrox --profile ~/profiles/fps.amgp --profile-controller 030000005e040000a102000000007200
+    ```
+  </Accordion>
+
+  <Accordion title="--unload &lt;value(s)&gt;">
+    Unload the currently active profile from one or all controllers. Can take a controller index, name, or GUID.
+
+    ```bash
+    antimicrox --unload
+    ```
+  </Accordion>
+
+  <Accordion title="--next">
+    Chain multiple `--profile` and `--profile-controller` pairs to load different profiles for different controllers in one command.
+
+    ```bash
+    antimicrox \
+      --profile ~/profiles/fps.amgp --profile-controller 1 \
+      --next \
+      --profile ~/profiles/racing.amgp --profile-controller 2
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Window and tray control
+
+<AccordionGroup>
+  <Accordion title="--tray">
+    Launch AntiMicroX minimized to the system tray only, without showing the main window.
+
+    ```bash
+    antimicrox --tray
+    ```
+  </Accordion>
+
+  <Accordion title="--no-tray">
+    Launch with the system tray icon disabled entirely.
+
+    ```bash
+    antimicrox --no-tray
+    ```
+  </Accordion>
+
+  <Accordion title="--hidden">
+    Launch without displaying the main window. The process runs in the background. Useful when loading a profile at login.
+
+    ```bash
+    antimicrox --hidden --profile ~/profiles/default.amgp
+    ```
+  </Accordion>
+
+  <Accordion title="--show">
+    Bring the main window of an already-running AntiMicroX instance to the foreground. Has no effect if no instance is running.
+
+    ```bash
+    antimicrox --show
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Controller and set options
+
+<AccordionGroup>
+  <Accordion title="--list (-l)">
+    Print information about all controllers detected by SDL — index, name, and GUID. Useful for scripting and finding values for `--profile-controller`.
+
+    ```bash
+    antimicrox --list
+    ```
+
+    Example output:
+    ```
+    1: Xbox 360 Controller (030000005e040000a102000000007200)
+    2: HORIPAD FPS for Nintendo Switch (030000000d0f00009200000011010000)
+    ```
+  </Accordion>
+
+  <Accordion title="--startSet &lt;number value&gt;">
+    Start all controllers on a specific mapping set (1–8). Can be combined with `--profile-controller` to target a specific device.
+
+    ```bash
+    antimicrox --startSet 2
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Event generation (Linux)
+
+<AccordionGroup>
+  <Accordion title="--eventgen &lt;event-generation-type&gt;">
+    Choose the event generation backend. Options are `xtest` (default) and `uinput`. Only relevant if both backends are compiled in.
+
+    ```bash
+    antimicrox --eventgen uinput
+    ```
+
+    Use `uinput` when running under Wayland or when XTest is unavailable.
+  </Accordion>
+</AccordionGroup>
+
+### Logging
+
+<AccordionGroup>
+  <Accordion title="--log-level &lt;log-type&gt;">
+    Enable logging output. Levels from least to most verbose: `error`, `warn`, `info`, `verbose`, `debug`.
+
+    ```bash
+    antimicrox --log-level debug
+    ```
+  </Accordion>
+
+  <Accordion title="--log-file &lt;filename&gt;">
+    Write log output to a file instead of (or in addition to) the terminal.
+
+    ```bash
+    antimicrox --log-level debug --log-file /tmp/antimicrox.log
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Common usage patterns
+
+**Load a profile at system startup (hidden):**
+```bash
+antimicrox --hidden --profile ~/.config/antimicrox/profiles/default.amgp
+```
+
+**Switch to a different profile while AntiMicroX is running:**
+```bash
+antimicrox --profile ~/.config/antimicrox/profiles/new-game.amgp
+```
+
+**Load different profiles for two controllers:**
+```bash
+antimicrox \
+  --profile ~/profiles/player1.amgp --profile-controller 1 \
+  --next \
+  --profile ~/profiles/player2.amgp --profile-controller 2
+```
+
+**Start on mapping set 3:**
+```bash
+antimicrox --profile ~/profiles/game.amgp --startSet 3
+```
+
+<Tip>
+Add `antimicrox --hidden --profile ~/profiles/default.amgp` to your desktop session autostart (e.g., `~/.config/autostart/` on GNOME/KDE) to automatically activate your gamepad mapping at login.
+</Tip>

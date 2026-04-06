@@ -1,0 +1,159 @@
+---
+title: "Controller calibration"
+description: "Correct analog stick drift, centering offset, and sensor bias using AntiMicroX's built-in calibration dialog."
+---
+
+Physical analog sticks and motion sensors are subject to manufacturing tolerances. Even a brand-new controller can report a non-zero value when a stick is centered (offset error) or fail to reach the full axis range at the extremes (gain error). These errors cause cursor drift, imprecise aiming, and unwanted input in games. AntiMicroX's calibration dialog measures and corrects these errors entirely in software without modifying the device firmware.
+
+<Warning>
+  AntiMicroX calibration applies corrections inside AntiMicroX only. It does **not** write any data to the controller hardware and does not affect how other applications or the operating system kernel read the device. If you need system-wide calibration, use a kernel-level tool such as `jscal` (Linux) or the Windows controller calibration wizard instead.
+</Warning>
+
+---
+
+## Opening the calibration dialog
+
+1. Connect your controller and make sure AntiMicroX detects it (it appears as a tab in the main window).
+2. Right-click the controller tab or open the **Controller** menu and choose **Calibration**, or click the calibration button in the toolbar.
+
+The Calibration dialog opens and immediately shows the available inputs for the selected device in the **Device** dropdown. The dropdown is populated with:
+- Each detected analog stick (e.g. *Left Stick*, *Right Stick*)
+- Gyroscope (if the device reports one)
+- Accelerometer (if the device reports one)
+
+Select the input you want to calibrate from the dropdown before starting.
+
+---
+
+## Calibrating analog sticks
+
+Analog stick calibration runs in two sequential phases: **offset calibration** (center position) followed by **gain calibration** (full range). Both phases must complete before you can save.
+
+<Steps>
+  <Step title="Select the stick">
+    Choose the stick to calibrate from the **Device** dropdown (e.g. *Left Stick*). The current calibration values (offset X/Y and gain X/Y) are shown immediately. If the stick has never been calibrated they appear in red.
+  </Step>
+
+  <Step title="Start offset calibration">
+    Click **Start calibration**. AntiMicroX instructs you to:
+
+    > *"Move the stick several times to the maximum in different directions and back to center."*
+
+    Move the stick through its full range repeatedly — up, down, left, right, and diagonally — then return it to center. AntiMicroX samples the local minima and maxima near the dead zone using a PT1 lag filter to estimate the true center position. The phase completes automatically once enough consistent samples are collected (minimum 10 samples within 1% relative error) or after a **30-second** timeout.
+
+    The **Start calibration** button becomes **Continue calibration** and re-enables when offset calibration finishes.
+  </Step>
+
+  <Step title="Continue with gain calibration">
+    Click **Continue calibration**. AntiMicroX instructs you to:
+
+    > *"Move the stick in full circles for several times."*
+
+    Rotate the stick in slow, deliberate full circles so it visits all points on the edge of its physical travel range. AntiMicroX records the minimum and maximum values on each axis and uses linear regression to calculate the gain correction. This phase also times out after **30 seconds**.
+  </Step>
+
+  <Step title="Review the calibration values">
+    When gain calibration finishes, the offset (X, Y) and gain (X, Y) values update in the dialog. Values shown in **black** are within the accepted accuracy threshold; values in **red** are outside tolerance and may indicate a noisy or worn stick.
+  </Step>
+
+  <Step title="Save">
+    Click **Save** to write the calibration data into the active profile's device object. The **Save** button is disabled until both calibration phases have completed. If you close the dialog before saving, AntiMicroX asks for confirmation so you do not accidentally discard unsaved data.
+  </Step>
+</Steps>
+
+<Tip>
+  Recalibrate a stick whenever you notice consistent drift in one direction, when cursor movement does not stop immediately after releasing the stick, or after the controller has been stored unused for an extended period. Temperature changes can shift the center position noticeably on some hardware.
+</Tip>
+
+---
+
+## Calibrating the gyroscope
+
+The gyroscope measures rotational rate. An uncalibrated gyroscope reports a non-zero offset even when the controller is at rest, causing the mouse cursor to drift slowly when gyro-to-mouse mapping is active.
+
+<Steps>
+  <Step title="Select Gyroscope">
+    Choose **Gyroscope** from the **Device** dropdown. The dialog displays:
+
+    > *"Gyroscope calibration corrects the sensor offset. This prevents cursor movement while the controller is at rest."*
+  </Step>
+
+  <Step title="Place the controller at rest">
+    Click **Start calibration**. The dialog prompts:
+
+    > *"Place the controller at rest, e.g. put it on the desk, and press continue."*
+
+    Set the controller on a flat, stable surface.
+  </Step>
+
+  <Step title="Collect gyroscope data">
+    Click **Continue calibration**. AntiMicroX collects gyroscope samples for up to **30 seconds**:
+
+    > *"Collecting gyroscope data... This can take up to 30 seconds."*
+
+    Do not move or touch the controller during collection. The offset values update in real time; they turn black once the variance drops below the 1% accuracy threshold on all three axes.
+  </Step>
+
+  <Step title="Save">
+    Click **Save** when collection completes.
+  </Step>
+</Steps>
+
+---
+
+## Calibrating the accelerometer
+
+Accelerometer calibration sets the neutral controller orientation — the reference position from which tilt angles are measured.
+
+<Steps>
+  <Step title="Select Accelerometer">
+    Choose **Accelerometer** from the **Device** dropdown. The dialog displays:
+
+    > *"Accelerometer calibration sets the neutral controller orientation."*
+  </Step>
+
+  <Step title="Hold the controller in neutral position">
+    Click **Start calibration**. The dialog prompts:
+
+    > *"Hold the controller in the desired neutral position and press continue."*
+
+    Hold the controller in the exact orientation you want to be treated as "flat" — typically face-up and level.
+  </Step>
+
+  <Step title="Collect accelerometer data">
+    Click **Continue calibration**. AntiMicroX samples the accelerometer for up to **30 seconds** while you hold the controller still. Once all three axes stabilize within tolerance, calibration completes automatically.
+  </Step>
+
+  <Step title="Save">
+    Click **Save** to store the neutral orientation offsets.
+  </Step>
+</Steps>
+
+---
+
+## Resetting calibration
+
+Click **Reset** at any time to discard the current calibration data for the selected input and return it to the uncalibrated state. AntiMicroX asks for confirmation before resetting. After resetting, the calibration values are shown in red to indicate no valid calibration is applied.
+
+---
+
+## Where calibration data is stored
+
+Calibration values (offset and gain per axis) are stored inside the AntiMicroX profile (`.amgp`) file, not in a system-level device database. This means:
+
+- Different profiles can carry different calibration data for the same controller.
+- Calibration travels with the profile when you share it.
+- Profiles created before calibration was performed will not have calibration data until you run the process and save.
+
+---
+
+## Related pages
+
+<CardGroup cols={2}>
+  <Card title="Application settings" icon="sliders" href="/configuration/settings">
+    Configure language, tray behavior, mouse smoothing, polling rate, and auto-profiles.
+  </Card>
+  <Card title="SDL2 game controller mapping" icon="map-pin" href="/configuration/sdl-mapping">
+    Generate and manage SDL2 mapping strings for non-standard gamepads.
+  </Card>
+</CardGroup>

@@ -1,0 +1,85 @@
+{
+  "projectType": "general",
+  "projectName": "AntiMicroX",
+  "projectDescription": "A graphical application for mapping gamepad buttons and analog sticks to keyboard keys, mouse controls, scripts, and macros on Linux and Windows.",
+  "theme": "almond",
+  "primaryColor": "#5c5c5c",
+  "lightColor": "#2e2e2e",
+  "darkColor": "#c1c1c1",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Using AntiMicroX",
+            "pages": [
+              "guides/mapping-buttons",
+              "guides/analog-sticks",
+              "guides/macros-scripts",
+              "guides/profiles",
+              "guides/auto-profiles"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "configuration/settings",
+              "configuration/calibration",
+              "configuration/sdl-mapping"
+            ]
+          },
+          {
+            "group": "Advanced",
+            "pages": [
+              "advanced/command-line",
+              "advanced/dbus",
+              "advanced/troubleshooting"
+            ]
+          },
+          {
+            "group": "Contributing",
+            "pages": [
+              "contributing/building",
+              "contributing/contributing"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Map gamepad buttons and analog sticks to keyboard keys and mouse controls",
+    "Support for macros combining keystrokes, mouse events, and scripts",
+    "Multiple switchable mapping sets (up to 8) per gamepad",
+    "Auto-profiles: automatically load profiles based on the active application window",
+    "SDL2 game controller mapping support for non-standard gamepads",
+    "D-Bus interface for programmatic control on Linux",
+    "Supports X.org, Wayland, and Windows",
+    "Gyroscope and accelerometer sensor input support",
+    "Gamepad calibration tool",
+    "Available as Flatpak, AppImage, DEB, RPM, and Windows installer"
+  ],
+  "publicApiSurface": [
+    "antimicrox --help (CLI flags)",
+    "--profile <path> (load a profile on startup)",
+    "--controller <number> (target specific controller)",
+    "--hidden (start minimized to tray)",
+    "--tray (launch to system tray)",
+    "--list-controllers (list detected controllers)",
+    "--startset <number> (start on a specific mapping set)",
+    "D-Bus: io.github.antimicrox.InputDevice.getSDLName()",
+    "D-Bus: io.github.antimicrox.InputDevice.getDescription()",
+    "D-Bus: io.github.antimicrox.InputDevice.getActiveSetNumber()",
+    "D-Bus: io.github.antimicrox.InputDevice.getActiveSetName()",
+    "D-Bus: io.github.antimicrox.InputDevice.setActiveSetNumber(index)"
+  ]
+}

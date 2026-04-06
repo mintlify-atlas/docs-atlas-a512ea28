@@ -1,0 +1,141 @@
+---
+title: "Macros and scripts"
+description: "Build multi-step macros, add timing delays, run external scripts, and document button actions with action names in AntiMicroX."
+---
+
+A macro in AntiMicroX is a sequence of button slots assigned to a single gamepad button. When you press the button, each slot fires in order — pressing keys, waiting, releasing keys, or launching programs — all from one physical input.
+
+Macros are built in the **Advanced** dialog. Open it by clicking a button widget in the main window and then clicking **Advanced**.
+
+## Creating a macro
+
+<Steps>
+  <Step title="Open the Advanced dialog">
+    Click the button widget on the controller diagram, then click **Advanced** in the Button Edit dialog that appears.
+  </Step>
+  <Step title="Add the first slot">
+    The Advanced dialog shows a scrollable list of slots. Click **Add** to append a new slot. The slot type defaults to **KB/Mouse**, which captures a single keyboard key or mouse button press.
+  </Step>
+  <Step title="Set the slot type and action">
+    Use the **Slot type** dropdown to choose the kind of action for this slot. For keyboard macros, leave it as **KB/Mouse** and press the key you want to capture using the key grabber button.
+  </Step>
+  <Step title="Add more slots">
+    Click **Add** again to add the next step in the sequence. Build the full sequence of presses, releases, and pauses needed for your macro.
+  </Step>
+  <Step title="Adjust timing with Pause slots">
+    Insert **Pause** slots between key presses to control timing. This is critical for games that require a minimum hold duration or a gap between inputs.
+  </Step>
+  <Step title="Name the action">
+    Fill in the **Action name** field at the top of the Advanced dialog to document what this macro does. This label appears in the main window and is saved in the profile XML.
+  </Step>
+</Steps>
+
+## Example: Ctrl+C combo
+
+The following slot sequence simulates pressing `Ctrl+C` — a copy shortcut — on a single gamepad button:
+
+| Slot # | Type | Action |
+|---|---|---|
+| 1 | KB/Mouse | Press `Left Ctrl` |
+| 2 | Pause | 30 ms |
+| 3 | KB/Mouse | Press `C` |
+| 4 | Pause | 30 ms |
+| 5 | KB/Mouse | Release `C` |
+| 6 | Pause | 10 ms |
+| 7 | KB/Mouse | Release `Left Ctrl` |
+
+<Note>
+  AntiMicroX distinguishes between key press and key release events. For a modifier+key combo to work reliably, explicitly add release slots for each key in the reverse order they were pressed.
+</Note>
+
+## Adding delays between steps
+
+Two slot types control timing within a macro:
+
+| Slot type | Behavior |
+|---|---|
+| **Pause** | Pauses the slot sequence for a fixed duration (milliseconds) before continuing to the next slot. Execution resumes automatically. |
+| **Hold** | Holds the previous key action for a set duration while the button continues to be held by the user. |
+| **Delay** | Waits before activating a slot, giving the target application time to register the previous input. |
+
+Use **Pause** for most macro timing needs. Small values like 20–50 ms are usually enough to satisfy application input requirements.
+
+## Running external scripts and executables
+
+To launch a program or shell script from a button press, add an **Execute** slot:
+
+<Steps>
+  <Step title="Add an Execute slot">
+    In the Advanced dialog, click **Add**, then change the **Slot type** dropdown to **Execute**.
+  </Step>
+  <Step title="Browse for the executable">
+    Click the file browser icon that appears and navigate to your script or binary. Select it to populate the path field.
+  </Step>
+  <Step title="Test the assignment">
+    Press the gamepad button. AntiMicroX launches the program as a child process using the same user account and permissions as AntiMicroX itself.
+  </Step>
+</Steps>
+
+```bash
+#!/bin/bash
+# Example script: toggle a game overlay
+pkill -USR1 mangohud || true
+```
+
+<Note>
+  Scripts must be executable (`chmod +x script.sh`). AntiMicroX does not run scripts through a shell interpreter — the file itself must be directly executable with a shebang line, or provide the full interpreter path (e.g., `/bin/bash /home/user/myscript.sh`) in the executable field.
+</Note>
+
+An Execute slot can be combined with keyboard or mouse slots in the same button's slot list. For example, you can press a key and launch a script simultaneously using the **Join** feature in the Advanced dialog.
+
+## Text entry
+
+The **Text Entry** slot type types a string of text as if each character were pressed on the keyboard. This is useful for frequently used phrases, commands, or chat messages.
+
+1. Add a slot and set the type to **Text Entry**.
+2. Type the text you want to output into the text field.
+
+<Note>
+  Text entry relies on X11 key injection. It may not work correctly in all applications, especially those using raw input or running under Wayland.
+</Note>
+
+## Action names
+
+Every button in AntiMicroX can have an **action name** — a short label that documents what the button does.
+
+<Tip>
+  Action names are strongly recommended when creating profiles you plan to share. They let others — and your future self — quickly understand what each button does without inspecting every slot individually.
+</Tip>
+
+Set the action name in the **Action name** field at the top of the Advanced dialog. The name is saved inside the profile XML file and displayed as a label in the main window.
+
+```xml
+<!-- Example of how an action name appears in a saved profile XML -->
+<button index="3">
+  <actionname>Copy selection</actionname>
+  <slots>
+    ...
+  </slots>
+</button>
+```
+
+Action names are especially useful for:
+
+- Complex macros where the slot list alone does not explain the intent
+- Shared profiles published to the [antimicrox-profiles](https://github.com/AntiMicroX/antimicrox-profiles) repository
+- Profiles with multiple sets where the same physical button has different roles in each set
+
+## Cycle slot
+
+The **Cycle** slot type rotates through a list of assignments each time the button is pressed. The first press fires the first assignment, the second press fires the second, and so on — then it wraps back to the start.
+
+This is useful for:
+- Cycling through chat responses
+- Rotating weapon selections
+- Toggling between multiple script targets
+
+Add multiple KB/Mouse or Execute slots after a Cycle slot to define the rotation.
+
+<Tip>
+  You can configure a **cycle reset interval** in the Advanced dialog so the rotation resets back to the first slot if the button hasn't been pressed for a specified amount of time.
+</Tip>

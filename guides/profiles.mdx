@@ -1,0 +1,132 @@
+---
+title: "Profiles"
+description: "Create, save, load, and organize AntiMicroX profiles — XML files that store complete button mappings for your controller."
+---
+
+A **profile** is an XML file that stores all of your button and axis mappings for a controller. Profiles let you switch between different mapping configurations without reconfiguring everything manually — for example, one profile for a platformer and another for an FPS.
+
+Each profile can contain up to **8 mapping sets**, each with its own independent button assignments. You can switch between sets while playing without changing the loaded profile.
+
+## What a profile contains
+
+Internally a profile is an XML file with one `<profile>` root element. It stores:
+
+- Button assignments for every input (buttons, axes, sticks, d-pad, triggers)
+- Slot sequences and macro definitions for each button
+- Action names
+- Stick and axis settings (dead zones, diagonal range, mouse acceleration)
+- Set names and which set is active
+
+```xml
+<!-- Simplified example of an AntiMicroX profile XML -->
+<profile version="1">
+  <joystick>
+    <set index="1" name="On Foot">
+      <button index="0">
+        <actionname>Jump</actionname>
+        <slots>
+          <slot>
+            <code>65</code>   <!-- keyboard Space -->
+            <mode>keyboard</mode>
+          </slot>
+        </slots>
+      </button>
+    </set>
+    <set index="2" name="Driving">
+      ...
+    </set>
+  </joystick>
+</profile>
+```
+
+## Creating a new profile
+
+<Steps>
+  <Step title="Open the profile selector">
+    In the main window, click the **profile name** shown above the controller diagram. A dropdown menu appears with options including **New profile**.
+  </Step>
+  <Step title="Name the profile">
+    Enter a descriptive name for the profile. AntiMicroX uses the name to generate the default file name (e.g., `fps-shooter.amgp`).
+  </Step>
+  <Step title="Configure your mappings">
+    Click button widgets to assign actions. Configure sticks, triggers, and d-pad as needed. All changes apply to the active set.
+  </Step>
+  <Step title="Save the profile">
+    Use **File → Save profile** or the save button in the toolbar. Profiles are saved as `.amgp` XML files in the configured profile directory (default: `~/.config/antimicrox/profiles/`).
+  </Step>
+</Steps>
+
+## Saving and loading profiles
+
+**Saving:**
+- **File → Save profile** — overwrites the current file
+- **File → Save profile as** — saves a copy under a new name or location
+
+**Loading:**
+- Click the profile name dropdown in the main window and select a profile from the list, or use **File → Load profile**
+- AntiMicroX remembers the last loaded profile per controller and reloads it on startup
+
+<Tip>
+  Store profiles in a dedicated folder and back them up with your dotfiles or a cloud sync service. The default location is `~/.config/antimicrox/profiles/` on Linux.
+</Tip>
+
+## Multiple mapping sets
+
+Each profile supports up to **8 independent sets**. Each set is a complete independent collection of button mappings. Set 1 is active by default when a profile loads.
+
+### Switching between sets
+
+You can switch sets:
+- **Manually** — using the numbered set tabs at the bottom of the main window
+- **Via a button mapping** — assign a **Set Change** slot to any button to switch sets when that button is pressed
+- **Via D-Bus** — call `setActiveSetNumber` on the `InputDevice` D-Bus object (see [D-Bus](/advanced/dbus))
+
+Set Change slot conditions:
+
+| Condition | Behavior |
+|---|---|
+| **One-way** | Switch to the target set; no way back via this button |
+| **Two-way** | Press to switch to target set; press again to return |
+| **While held** | Switch to target set while button is held; return when released |
+
+### Naming sets
+
+Give each set a meaningful name by double-clicking the set tab label in the main window. Named sets:
+- Appear in the main window tabs with their custom label
+- Are returned by the `getActiveSetName()` D-Bus method
+- Make it easier to distinguish sets in complex profiles
+
+```
+Set 1: "On Foot"
+Set 2: "Driving"
+Set 3: "Menu Navigation"
+```
+
+<Tip>
+  A common pattern is to use Set 1 for the main gameplay mapping and Set 2 for a menu/cursor mode, then map a button to toggle between them with a **Two-way** Set Change.
+</Tip>
+
+## Action names
+
+When building a profile you intend to share, add **action names** to every button that has a non-obvious mapping.
+
+From `ProfileTips.md`:
+
+> It is generally recommended that you specify action names when making profiles that you will share with other people. This will allow other people to more easily decipher what buttons are used for in a profile. Specifying action names can also be a helpful reminder for yourself in order to document a more complex action.
+
+Set an action name for any button in the **Advanced** dialog → **Action name** field.
+
+## The AntiMicroX profiles repository
+
+A community repository of ready-made profiles is maintained at:
+
+**[https://github.com/AntiMicroX/antimicrox-profiles](https://github.com/AntiMicroX/antimicrox-profiles)**
+
+You can:
+- Browse and download profiles for popular games and applications
+- Submit your own profiles via pull request
+- Report issues or request profiles for specific games
+
+<Note>
+  Downloaded profiles are plain XML files. Copy them to your profiles directory (`~/.config/antimicrox/profiles/` on Linux) and they will appear in the profile list in AntiMicroX.
+</Note>

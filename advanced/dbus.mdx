@@ -1,0 +1,169 @@
+---
+title: "D-Bus interface"
+description: "Control AntiMicroX programmatically via D-Bus on Linux."
+---
+
+On Linux with Qt6, AntiMicroX registers a D-Bus service named `io.github.antimicrox` on the session bus. You can use this interface to query controller information and switch mapping sets from scripts or other applications.
+
+<Note>
+The D-Bus interface requires AntiMicroX to be built with Qt6 and is available on Linux only. It is not available on Windows or in Qt5 builds.
+</Note>
+
+## Service and objects
+
+AntiMicroX exposes one object per connected input device at the path:
+
+```
+/InputDevice/<N>
+```
+
+Where `<N>` is the zero-based device index. To find a specific controller, enumerate these objects and call `getSDLName` or `getDescription` to identify it.
+
+## Interface: io.github.antimicrox.InputDevice
+
+All InputDevice objects implement the `io.github.antimicrox.InputDevice` interface with the following methods.
+
+### getSDLName()
+
+Returns the human-readable SDL name of the controller.
+
+```bash
+dbus-send --print-reply \
+  --dest=io.github.antimicrox \
+  /InputDevice/0 \
+  io.github.antimicrox.InputDevice.getSDLName
+```
+
+Example response:
+```
+string "Xbox 360 Controller"
+```
+
+---
+
+### getDescription()
+
+Returns a detailed description of the device including GUID, vendor/product IDs, axis and button counts, and sensor availability.
+
+```bash
+dbus-send --print-reply \
+  --dest=io.github.antimicrox \
+  /InputDevice/0 \
+  io.github.antimicrox.InputDevice.getDescription
+```
+
+Example response:
+```
+string "Index:            1
+  UniqueID:         030081b85e0400008e020000100100001118654
+  GUID:             030081b85e0400008e02000010010000
+  VendorID:         1118
+  ProductID:        654
+  Serial:
+  Product Version:  272
+  Name:             Xbox 360 Controller
+  Game Controller: Yes
+  # of RawAxes:    6
+  # of Axes:       6
+  # of RawButtons: 21
+  # of Buttons:    21
+  # of Hats:       0
+  Accelerometer:   0
+  Gyroscope:       0"
+```
+
+---
+
+### getActiveSetNumber()
+
+Returns the current mapping set index for the device. Indices are **0-based** in the API but displayed as 1-based in the UI (Set 1 = index 0).
+
+```bash
+dbus-send --print-reply \
+  --dest=io.github.antimicrox \
+  /InputDevice/0 \
+  io.github.antimicrox.InputDevice.getActiveSetNumber
+```
+
+Example response:
+```
+int32 0
+```
+
+---
+
+### getActiveSetName()
+
+Returns the name of the currently active mapping set. Returns an empty string if the set has not been given a custom name (the UI shows `Set <N>` in that case).
+
+```bash
+dbus-send --print-reply \
+  --dest=io.github.antimicrox \
+  /InputDevice/0 \
+  io.github.antimicrox.InputDevice.getActiveSetName
+```
+
+---
+
+### setActiveSetNumber(index)
+
+Switches the active mapping set for the device. The `index` argument is **0-based** (0 = Set 1, 1 = Set 2, …, 7 = Set 8).
+
+```bash
+# Switch controller 0 to Set 1 (index 0)
+dbus-send --print-reply \
+  --dest=io.github.antimicrox \
+  /InputDevice/0 \
+  io.github.antimicrox.InputDevice.setActiveSetNumber \
+  int32:0
+
+# Switch controller 0 to Set 3 (index 2)
+dbus-send --print-reply \
+  --dest=io.github.antimicrox \
+  /InputDevice/0 \
+  io.github.antimicrox.InputDevice.setActiveSetNumber \
+  int32:2
+```
+
+## Inspecting the interface with D-Spy
+
+[D-Spy](https://gitlab.gnome.org/GNOME/d-spy) is the recommended tool for interactively browsing and testing the D-Bus interface. Install it from your distribution's package manager:
+
+<Tabs>
+  <Tab title="Fedora">
+    ```bash
+    sudo dnf install d-spy
+    ```
+  </Tab>
+  <Tab title="Debian/Ubuntu">
+    ```bash
+    sudo apt install d-spy
+    ```
+  </Tab>
+  <Tab title="Arch Linux">
+    ```bash
+    sudo pacman -S d-spy
+    ```
+  </Tab>
+</Tabs>
+
+Launch D-Spy, connect to the **Session Bus**, and navigate to `io.github.antimicrox` to browse all objects and call methods interactively.
+
+## Scripting example
+
+This shell script switches the first controller to a different set based on which application is focused:
+
+```bash
+#!/bin/bash
+# Switch AntiMicroX to Set 2 (index 1) for controller 0
+dbus-send --dest=io.github.antimicrox \
+  /InputDevice/0 \
+  io.github.antimicrox.InputDevice.setActiveSetNumber \
+  int32:1
+
+echo "Switched to Set 2"
+```
+
+<Tip>
+Combine D-Bus set switching with a window manager script to automatically switch mapping sets when your active application changes — a manual alternative to auto-profiles on Wayland.
+</Tip>
